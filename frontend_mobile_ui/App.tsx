@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { AuthProvider } from "@/context/AuthContext";
+import { assertLiveConfig } from "@/lib/env";
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { colors } from "@/theme/tokens";
 import { useAppFonts } from "@/theme/useAppFonts";
@@ -13,6 +14,10 @@ import { useAppFonts } from "@/theme/useAppFonts";
 SplashScreen.preventAutoHideAsync().catch(() => {
   // No-op: if this rejects (e.g. already hidden), there is nothing to recover.
 });
+
+// Fail fast and loud on a missing/misconfigured .env rather than surfacing
+// as a confusing network error the first time a screen hits the API.
+assertLiveConfig();
 
 export default function App() {
   const fontsLoaded = useAppFonts();

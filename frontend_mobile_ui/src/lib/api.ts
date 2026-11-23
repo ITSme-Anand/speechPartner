@@ -11,7 +11,7 @@ import { supabase } from "./supabase";
  */
 export const api = axios.create({
   baseURL: env.apiBaseUrl,
-  timeout: 15000,
+  timeout: 180000, // 3 min — measured: Gemini analysis alone took ~37s for a 39s clip
 });
 
 api.interceptors.request.use(async (config) => {

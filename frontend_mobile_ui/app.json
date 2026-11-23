@@ -29,7 +29,12 @@
           "microphonePermission": "SpeechPartner needs microphone access to record your practice sessions."
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      "expo-sharing",
+      "expo-font",
+      "expo-secure-store",
+      "expo-splash-screen",
+      "expo-status-bar"
     ]
   }
 }

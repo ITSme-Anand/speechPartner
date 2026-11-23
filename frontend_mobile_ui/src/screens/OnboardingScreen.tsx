@@ -10,7 +10,6 @@ import {
   View,
 } from "react-native";
 
-import { BloomIcon } from "@/components/BloomIcon";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { useAuth } from "@/context/AuthContext";
@@ -72,15 +71,15 @@ export function OnboardingScreen() {
   return (
     <ScreenContainer>
       <View style={styles.wordmarkRow}>
-        <BloomIcon size={18} />
-        <Text style={styles.wordmark}>grammar partner</Text>
+        <Feather name="mic" size={16} color={colors.purpleDeep} />
+        <Text style={styles.wordmark}>speechpartner</Text>
       </View>
 
       <View style={styles.hero}>
         <View style={styles.iconRing}>
           <View style={[styles.iconRing, styles.iconRingInner]} />
           <View style={styles.iconCircle}>
-            <BloomIcon size={46} />
+            <Feather name="mic" size={40} color={colors.purpleDeep} />
           </View>
         </View>
 

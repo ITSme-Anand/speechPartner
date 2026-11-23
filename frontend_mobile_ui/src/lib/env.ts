@@ -8,23 +8,14 @@
  * network error instead of an obvious startup one.
  */
 
-function readBool(value: string | undefined, fallback: boolean): boolean {
-  if (value === undefined) return fallback;
-  return value.toLowerCase() === "true";
-}
-
 export const env = {
-  useMockData: readBool(process.env.EXPO_PUBLIC_USE_MOCK_DATA, true),
   apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? "",
   supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? "",
   supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "",
 };
 
-/** Call before anything that actually needs the network/Supabase. Mock mode
- * intentionally skips this so the app runs with zero configuration. */
+/** Called once at app startup — see App.tsx. */
 export function assertLiveConfig(): void {
-  if (env.useMockData) return;
-
   const missing: string[] = [];
   if (!env.apiBaseUrl) missing.push("EXPO_PUBLIC_API_BASE_URL");
   if (!env.supabaseUrl) missing.push("EXPO_PUBLIC_SUPABASE_URL");
@@ -33,7 +24,7 @@ export function assertLiveConfig(): void {
   if (missing.length > 0) {
     throw new Error(
       `Missing required environment variable(s): ${missing.join(", ")}. ` +
-        "Copy .env.example to .env and fill them in, or set EXPO_PUBLIC_USE_MOCK_DATA=true to run against local fixtures.",
+        "Copy .env.example to .env and fill them in before running the app.",
     );
   }
 

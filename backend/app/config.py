@@ -13,11 +13,15 @@ class Settings(BaseSettings):
     # Groq (Whisper STT + Drill Generator LLM)
     GROQ_API_KEY: str
     GROQ_STT_MODEL: str = "whisper-large-v3"
-    GROQ_CHAT_MODEL: str = "llama-3.3-70b-versatile"
+    # llama-3.3-70b-versatile was retired by Groq; gpt-oss-20b is the
+    # current model confirmed to support response_format=json_object.
+    GROQ_CHAT_MODEL: str = "openai/gpt-oss-20b"
 
     # Google Gemini (Speech Analyser)
     GEMINI_API_KEY: str
-    GEMINI_MODEL: str = "gemini-2.5-pro"
+    # gemini-2.5-pro was retired for new API keys/projects; gemini-3.5-flash
+    # is the current model confirmed to work with this key's quota tier.
+    GEMINI_MODEL: str = "gemini-3.5-flash"
 
     # EMA scoring
     EMA_ALPHA: float = 0.4

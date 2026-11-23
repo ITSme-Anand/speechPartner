@@ -50,7 +50,8 @@ export function AuthScreen() {
           <View style={{ gap: spacing.xs, marginBottom: spacing.xl }}>
             <Text style={styles.title}>Hey there.</Text>
             <Text style={styles.subtitle}>
-              Create an account to save your progress and grow your garden.
+              Create an account to save your progress and track your grammar
+              drills.
             </Text>
           </View>
 
@@ -151,7 +152,7 @@ export function AuthScreen() {
             style={{ marginTop: spacing.xl }}
           >
             <Text style={styles.guestLink}>
-              Browse a scenario without an account &rarr;
+              Continue without an account &rarr;
             </Text>
           </Pressable>
         </ScrollView>

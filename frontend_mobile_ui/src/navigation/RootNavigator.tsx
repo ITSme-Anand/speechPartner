@@ -6,15 +6,16 @@ import type { RootStackParamList } from "./types";
 
 import { useAuth } from "@/context/AuthContext";
 import { AuthScreen } from "@/screens/AuthScreen";
-import { ChoosePracticeScreen } from "@/screens/ChoosePracticeScreen";
-import { DrillScreen } from "@/screens/DrillScreen";
-import { DurationScreen } from "@/screens/DurationScreen";
-import { FeedbackScreen } from "@/screens/FeedbackScreen";
+import { DrillConceptScreen } from "@/screens/DrillConceptScreen";
+import { DrillGuideScreen } from "@/screens/DrillGuideScreen";
+import { DrillMCQScreen } from "@/screens/DrillMCQScreen";
+import { DrillScenarioScreen } from "@/screens/DrillScenarioScreen";
+import { DrillSummaryScreen } from "@/screens/DrillSummaryScreen";
 import { HomeScreen } from "@/screens/HomeScreen";
+import { NarrateScreen } from "@/screens/NarrateScreen";
 import { OnboardingScreen } from "@/screens/OnboardingScreen";
 import { ProcessingScreen } from "@/screens/ProcessingScreen";
-import { ReportScreen } from "@/screens/ReportScreen";
-import { SessionScreen } from "@/screens/SessionScreen";
+import { ResultScreen } from "@/screens/ResultScreen";
 import { SettingsScreen } from "@/screens/SettingsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -43,16 +44,17 @@ export function RootNavigator() {
         ) : (
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen
-              name="ChoosePractice"
-              component={ChoosePracticeScreen}
-            />
-            <Stack.Screen name="Duration" component={DurationScreen} />
-            <Stack.Screen name="Session" component={SessionScreen} />
+            <Stack.Screen name="Narrate" component={NarrateScreen} />
             <Stack.Screen name="Processing" component={ProcessingScreen} />
-            <Stack.Screen name="Feedback" component={FeedbackScreen} />
-            <Stack.Screen name="Drill" component={DrillScreen} />
-            <Stack.Screen name="Report" component={ReportScreen} />
+            <Stack.Screen name="Result" component={ResultScreen} />
+            <Stack.Screen name="DrillGuide" component={DrillGuideScreen} />
+            <Stack.Screen name="DrillConcept" component={DrillConceptScreen} />
+            <Stack.Screen name="DrillMCQ" component={DrillMCQScreen} />
+            <Stack.Screen
+              name="DrillScenario"
+              component={DrillScenarioScreen}
+            />
+            <Stack.Screen name="DrillSummary" component={DrillSummaryScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
           </>
         )}

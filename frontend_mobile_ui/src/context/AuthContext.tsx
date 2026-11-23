@@ -6,7 +6,6 @@ import React, {
   useState,
 } from "react";
 
-import { env } from "@/lib/env";
 import { supabase } from "@/lib/supabase";
 import type { AuthCredentials } from "@/types";
 
@@ -46,12 +45,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [hasAcceptedConsent, setHasAcceptedConsent] = useState(false);
 
   useEffect(() => {
-    if (env.useMockData) {
-      // Nothing to restore in mock mode — start signed out, same as a real cold start.
-      setIsReady(true);
-      return;
-    }
-
     supabase.auth.getSession().then(({ data }) => {
       setIsSignedIn(!!data.session);
       setUserEmail(data.session?.user.email ?? null);
@@ -83,12 +76,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const validationError = validateCredentials(credentials);
         if (validationError) return { error: validationError };
 
-        if (env.useMockData) {
-          setIsSignedIn(true);
-          setUserEmail(credentials.email.trim());
-          return { error: null };
-        }
-
         const { error } = await supabase.auth.signUp({
           email: credentials.email.trim(),
           password: credentials.password,
@@ -99,12 +86,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const validationError = validateCredentials(credentials);
         if (validationError) return { error: validationError };
 
-        if (env.useMockData) {
-          setIsSignedIn(true);
-          setUserEmail(credentials.email.trim());
-          return { error: null };
-        }
-
         const { error } = await supabase.auth.signInWithPassword({
           email: credentials.email.trim(),
           password: credentials.password,
@@ -112,9 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: error ? GENERIC_AUTH_ERROR : null };
       },
       signOut: async () => {
-        if (!env.useMockData) {
-          await supabase.auth.signOut();
-        }
+        await supabase.auth.signOut();
         setIsSignedIn(false);
         setUserEmail(null);
       },

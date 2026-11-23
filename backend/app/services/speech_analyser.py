@@ -1,42 +1,30 @@
-"""Speech Analyser service using Google Gemini 2.5 Pro."""
+"""Speech Analyser service using Google Gemini."""
 
 import json
 import logging
+import time
+
 from google import genai
 from google.genai import types
-from groq import Groq
+from google.genai.errors import ServerError
+
 from app.config import get_settings
 from app.models.schemas import SpeechAnalysisResponse
 from app.prompts.speech_analyser_prompt import SPEECH_ANALYSER_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
+# Gemini models occasionally return 503 "high demand" during load spikes.
+# Retry a couple of times, then fall back to a second model before giving up.
+ATTEMPTS_PER_MODEL = 2
+RETRY_BACKOFF_SECONDS = 3
+FALLBACK_MODEL = "gemini-3.1-flash-lite"
 
-def analyze_speech(transcript: str) -> SpeechAnalysisResponse:
-    """Analyze a speech transcript for grammatical errors using Gemini 2.5 Pro.
 
-    Args:
-        transcript: The full text transcript from STT.
-
-    Returns:
-        SpeechAnalysisResponse containing per-sentence analysis with
-        opportunities, errors, and corrections.
-
-    Raises:
-        ValueError: If the LLM response cannot be parsed.
-        Exception: If the Gemini API call fails.
-    """
-    settings = get_settings()
-    #client = genai.Client(api_key=settings.GEMINI_API_KEY)
-    client = Groq(api_key=settings.GROQ_API_KEY)
-    logger.info(
-        "Sending transcript to Gemini for analysis (model=%s, length=%d chars)",
-        settings.GEMINI_MODEL,
-        len(transcript),
-    )
-
-    '''response = client.models.generate_content(
-        model=settings.GEMINI_MODEL,
+def _call_gemini(client: genai.Client, model: str, transcript: str) -> str:
+    """One Gemini call. Returns the raw text response."""
+    response = client.models.generate_content(
+        model=model,
         contents=[
             types.Content(
                 role="user",
@@ -48,24 +36,65 @@ def analyze_speech(transcript: str) -> SpeechAnalysisResponse:
             response_mime_type="application/json",
             temperature=0.2,
         ),
-    )'''
-    response = client.chat.completions.create(
-        model=settings.GROQ_CHAT_MODEL,
-        messages=[
-            {
-                "role": "system",
-                "content": SPEECH_ANALYSER_SYSTEM_PROMPT,
-            },
-            {
-                "role": "user",
-                "content": f"Analyze this spoken English transcript:\n\n{transcript}",
-            },
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.2,
-        max_tokens=4096,
     )
-    raw_text = response.choices[0].message.content
+    return response.text
+
+
+def analyze_speech(transcript: str) -> SpeechAnalysisResponse:
+    """Analyze a speech transcript for grammatical errors using Gemini.
+
+    Retries transient server-side overload (503) a couple of times per
+    model, then falls back to a second model before giving up entirely —
+    a single Gemini load spike shouldn't fail the user's whole submission.
+
+    Args:
+        transcript: The full text transcript from STT.
+
+    Returns:
+        SpeechAnalysisResponse containing per-sentence analysis with
+        opportunities, errors, and corrections.
+
+    Raises:
+        ValueError: If the LLM response cannot be parsed.
+        Exception: If every model/attempt fails.
+    """
+    settings = get_settings()
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+    models_to_try = [settings.GEMINI_MODEL, FALLBACK_MODEL]
+    last_error: Exception | None = None
+
+    for model in models_to_try:
+        for attempt in range(1, ATTEMPTS_PER_MODEL + 1):
+            logger.info(
+                "Sending transcript to Gemini for analysis (model=%s, attempt=%d/%d, length=%d chars)",
+                model,
+                attempt,
+                ATTEMPTS_PER_MODEL,
+                len(transcript),
+            )
+            try:
+                raw_text = _call_gemini(client, model, transcript)
+                break
+            except ServerError as e:
+                last_error = e
+                logger.warning(
+                    "Gemini call failed (model=%s, attempt=%d/%d): %s",
+                    model,
+                    attempt,
+                    ATTEMPTS_PER_MODEL,
+                    e,
+                )
+                if attempt < ATTEMPTS_PER_MODEL:
+                    time.sleep(RETRY_BACKOFF_SECONDS * attempt)
+        else:
+            # Inner loop exhausted without a `break` — move on to the next model.
+            continue
+        # Inner loop hit `break` — we have a response, stop trying models.
+        break
+    else:
+        raise last_error if last_error else RuntimeError("Gemini analysis failed with no error captured")
+
     logger.info("Gemini response received (%d chars)", len(raw_text))
 
     # Parse the JSON response
